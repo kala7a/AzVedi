@@ -3,6 +3,7 @@ import { buildSession } from '../data/session'
 import TraceExercise from './TraceExercise'
 import ChoiceExercise from './ChoiceExercise'
 import WordExercise from './WordExercise'
+import NameExercise from './NameExercise'
 import type { Difficulty } from '../types'
 
 interface Props {
@@ -61,6 +62,15 @@ export default function GameSession({ difficulty, onFinish }: Props) {
         )}
         {exercise.type === 'word' && (
           <WordExercise
+            letter={exercise.letter}
+            options={exercise.options}
+            cursive={exercise.cursive}
+            lowercase={exercise.lowercase}
+            onComplete={handleRoundComplete}
+          />
+        )}
+        {exercise.type === 'name' && (
+          <NameExercise
             letter={exercise.letter}
             options={exercise.options}
             cursive={exercise.cursive}

@@ -1,6 +1,6 @@
 import type { BgLetter } from './data/letters'
 
-export type ExerciseType = 'trace' | 'choice' | 'word'
+export type ExerciseType = 'trace' | 'choice' | 'word' | 'name'
 
 /** Easy is printed capitals; hard is the handwritten (ръкописни) forms. */
 export type Difficulty = 'easy' | 'hard'
@@ -33,7 +33,17 @@ export interface WordExercise extends RoundScript {
   options: BgLetter[]
 }
 
-export type Exercise = TraceExercise | ChoiceExercise | WordExercise
+/**
+ * Show a letter, child taps sound buttons to hear letter names and confirms
+ * the one that belongs to it. `options` is in on-screen order.
+ */
+export interface NameExercise extends RoundScript {
+  type: 'name'
+  letter: BgLetter
+  options: BgLetter[]
+}
+
+export type Exercise = TraceExercise | ChoiceExercise | WordExercise | NameExercise
 
 export interface RoundResult {
   exercise: Exercise

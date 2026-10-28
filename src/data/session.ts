@@ -1,5 +1,5 @@
 import { ALPHABET, type BgLetter } from './letters'
-import type { ChoiceExercise, Difficulty, Exercise, TraceExercise, WordExercise } from '../types'
+import type { ChoiceExercise, Difficulty, Exercise, NameExercise, TraceExercise, WordExercise } from '../types'
 
 /** Rounds per game. Fixed now that the home screen picks difficulty, not length. */
 export const ROUND_COUNT = 10
@@ -7,6 +7,10 @@ export const ROUND_COUNT = 10
 // Letters kept out of the "listen and choose" pool: their names are too similar
 // to neighbors for a 5-year-old to reliably tell apart by ear alone.
 const CHOICE_EXCLUDED = new Set(['Ь'])
+
+// How many names a "which name is this letter?" round offers. Each one has to
+// be listened to and held in mind, so easy keeps it to a pair.
+const NAME_OPTION_COUNT: Record<Difficulty, number> = { easy: 2, hard: 4 }
 
 // Letters with no real associated word (Ь's "word" is just its own name again),
 // so they can't be the answer in a "which letter does this word start with?" round.
@@ -32,10 +36,10 @@ export function buildSession(difficulty: Difficulty): Exercise[] {
   const wordPool = ALPHABET.filter((l) => !WORD_EXCLUDED.has(l.letter))
 
   return letters.map((letter): Exercise => {
-    // Roughly even three-way mix, so tracing, listen-and-pick and
-    // word-first-letter rounds all show up across a session.
-    const roll = Math.random()
-    const type = roll < 1 / 3 ? 'trace' : roll < 2 / 3 ? 'choice' : 'word'
+    // Roughly even four-way mix, so tracing, listen-and-pick,
+    // word-first-letter and name-the-letter rounds all show up in a session.
+    const types = ['trace', 'choice', 'word', 'name'] as const
+    const type = types[Math.floor(Math.random() * types.length)]
     const cursive = difficulty === 'hard'
     // Handwritten capitals and small letters are genuinely different shapes
     // (А against а, not just a size), so hard alternates between them. Ь is
@@ -58,6 +62,16 @@ export function buildSession(difficulty: Difficulty): Exercise[] {
         type: 'word',
         letter,
         options: pickOptions(letter, wordPool, 2),
+        cursive,
+        lowercase,
+      }
+      return exercise
+    }
+    if (type === 'name') {
+      const exercise: NameExercise = {
+        type: 'name',
+        letter,
+        options: pickOptions(letter, choicePool, NAME_OPTION_COUNT[difficulty]),
         cursive,
         lowercase,
       }
