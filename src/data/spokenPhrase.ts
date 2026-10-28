@@ -22,3 +22,12 @@ export function buildSpokenPhrase(letter: BgLetter, word: WordOption): string {
 export function buildWordPhrase(word: WordOption): string {
   return `Думата ${word.word}`
 }
+
+/**
+ * One option in the "which name is this letter?" exercise. Just the name,
+ * with no example word: the child is comparing names against each other,
+ * and a word would make some options longer to sit through than others.
+ */
+export function buildNamePhrase(letter: BgLetter): string {
+  return `Буквата ${letter.speechText}`
+}

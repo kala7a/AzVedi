@@ -9,7 +9,7 @@ no AI — just a static React app.
 
 ## How it works
 
-A play session is 10 rounds mixing three exercise types:
+A play session is 10 rounds mixing four exercise types:
 
 1. **Trace** — the child traces a large guide letter on a canvas with a
    finger (or mouse), after an animated demo of the stroke order, while the
@@ -21,6 +21,9 @@ A play session is 10 rounds mixing three exercise types:
    the matching letter out of 4 big options.
 3. **First letter** — a word is read aloud (with its emoji), and the child
    picks which of 2 letters it starts with.
+4. **Name the letter** — a letter is shown, and the child taps sound
+   buttons to hear letter names (2 on Лесно, 4 on Трудно), then presses
+   „Готово“ on the one that matches.
 
 At the end of the session the child sees a star rating (1–3 stars) and can
 play again. The home screen picks the difficulty: **Лесно** uses printed
@@ -45,7 +48,7 @@ Web Audio API, also with no audio assets.
 - `src/components/TraceCanvas.tsx` — the tracing canvas, stroke order demo
   and coverage detection (via an offscreen letter mask).
 - `src/screens/` — `HomeScreen`, `GameSession`, `TraceExercise`,
-  `ChoiceExercise`, `WordExercise`, `ResultsScreen`.
+  `ChoiceExercise`, `WordExercise`, `NameExercise`, `ResultsScreen`.
 
 Adding a new exercise type later means adding a new entry to the
 `Exercise` union in `src/types.ts`, a case in `session.ts`, and a new
