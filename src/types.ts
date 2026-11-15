@@ -1,6 +1,7 @@
 import type { BgLetter } from './data/letters'
 
-export type ExerciseType = 'trace' | 'choice' | 'word' | 'name'
+/** What a session practises, picked on the home screen. */
+export type Category = 'letters' | 'syllables' | 'words'
 
 /** Easy is printed capitals; hard is the handwritten (ръкописни) forms. */
 export type Difficulty = 'easy' | 'hard'
@@ -43,7 +44,45 @@ export interface NameExercise extends RoundScript {
   options: BgLetter[]
 }
 
-export type Exercise = TraceExercise | ChoiceExercise | WordExercise | NameExercise
+/** A syllable or a whole word to read, kept in small letters. */
+export interface ReadItem {
+  kind: 'syllable' | 'word'
+  text: string
+  /** Words come with a picture; syllables have none. */
+  emoji?: string
+}
+
+/** A reading round. `options` is in on-screen order and includes `target`. */
+interface ReadRound {
+  target: ReadItem
+  options: ReadItem[]
+  /** Written by hand (small letters) rather than in printed capitals. */
+  cursive: boolean
+}
+
+/** Hear the target (and see its picture, for a word), pick how it is written. */
+export interface ListenExercise extends ReadRound {
+  type: 'listen'
+}
+
+/** See the target written, pick which of the sound buttons reads it. */
+export interface SoundExercise extends ReadRound {
+  type: 'sound'
+}
+
+/** See a word written, pick its picture. Nothing is read aloud first. */
+export interface PictureExercise extends ReadRound {
+  type: 'picture'
+}
+
+export type Exercise =
+  | TraceExercise
+  | ChoiceExercise
+  | WordExercise
+  | NameExercise
+  | ListenExercise
+  | SoundExercise
+  | PictureExercise
 
 export interface RoundResult {
   exercise: Exercise

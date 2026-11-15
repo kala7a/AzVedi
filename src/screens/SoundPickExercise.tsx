@@ -1,21 +1,26 @@
-import { useState } from 'react'
-import { glyphFor, type BgLetter } from '../data/letters'
-import { buildNamePhrase } from '../data/spokenPhrase'
+import { useState, type ReactNode } from 'react'
 import { useSpeech } from '../hooks/useSpeech'
 import { useSoundEffects } from '../hooks/useSoundEffects'
 import KidButton from '../components/KidButton'
-import CursiveGlyph from '../components/CursiveGlyph'
 import SpeakerIcon from '../components/SpeakerIcon'
 
+export interface SoundOption {
+  key: string
+  /** What the button says when tapped. */
+  phrase: string
+}
+
 interface Props {
-  letter: BgLetter
-  options: BgLetter[]
-  cursive: boolean
-  lowercase: boolean
+  title: string
+  /** The written letter, syllable or word the child is finding the sound of. */
+  children: ReactNode
+  options: SoundOption[]
+  /** `key` of the option that reads what is shown. */
+  answer: string
   onComplete: (correctFirstTry: boolean) => void
 }
 
-// The buttons all say "Буквата …" and carry the same speaker, so colour is
+// The buttons all open the same way ("Буквата …") and carry the same speaker, so colour is
 // what tells them apart — "the blue one" is something a child can hold on to
 // while listening to the next.
 const BUTTON_COLORS = [
@@ -25,7 +30,11 @@ const BUTTON_COLORS = [
   'bg-lime-400 text-lime-950',
 ]
 
-export default function NameExercise({ letter, options, cursive, lowercase, onComplete }: Props) {
+/**
+ * Shows something written and a row of sound buttons. Tapping a button says
+ * its phrase and selects it; „Готово“ checks the selected one.
+ */
+export default function SoundPickExercise({ title, children, options, answer, onComplete }: Props) {
   const { speak, speaking, supported } = useSpeech()
   const { playCorrect, playWrong } = useSoundEffects()
   const [selected, setSelected] = useState<string | null>(null)
@@ -34,18 +43,16 @@ export default function NameExercise({ letter, options, cursive, lowercase, onCo
   const [wrongPicks, setWrongPicks] = useState<Set<string>>(new Set())
   const [shakeKey, setShakeKey] = useState<string | null>(null)
 
-  const glyph = glyphFor(letter, lowercase)
-
-  function handleListen(opt: BgLetter) {
+  function handleListen(opt: SoundOption) {
     if (picked) return
-    setSelected(opt.letter)
-    setPlaying(opt.letter)
-    speak(buildNamePhrase(opt))
+    setSelected(opt.key)
+    setPlaying(opt.key)
+    speak(opt.phrase)
   }
 
   function handleDone() {
     if (picked || !selected) return
-    if (selected === letter.letter) {
+    if (selected === answer) {
       setPicked(true)
       playCorrect()
       setTimeout(() => onComplete(wrongPicks.size === 0), 1200)
@@ -60,32 +67,33 @@ export default function NameExercise({ letter, options, cursive, lowercase, onCo
 
   return (
     <div className="flex flex-1 flex-col items-center gap-5 px-6 py-4">
-      <p className="text-center text-lg font-bold text-violet-800">Как се казва тази буква? 🤔</p>
+      <p className="text-center text-lg font-bold text-violet-800">{title}</p>
 
       <div
-        className={`flex h-36 w-36 shrink-0 items-center justify-center rounded-3xl bg-white text-8xl font-extrabold text-violet-700 shadow-lg ${
+        className={`flex h-36 min-w-36 max-w-full shrink-0 items-center justify-center rounded-3xl bg-white px-5 text-8xl font-extrabold text-violet-700 shadow-lg ${
           picked ? 'animate-pop ring-8 ring-emerald-400' : ''
         }`}
       >
-        {cursive ? <CursiveGlyph glyph={glyph} className="h-3/4" /> : glyph}
+        {children}
       </div>
 
-      <div className="grid w-full max-w-xs grid-cols-2 gap-4">
+      {/* Three sit in one row; in two columns the third would hang alone. */}
+      <div className={`grid w-full max-w-xs gap-4 ${options.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
         {options.map((opt, i) => {
-          const isWrong = wrongPicks.has(opt.letter)
-          const isSelected = selected === opt.letter
-          const isPlaying = speaking && playing === opt.letter
+          const isWrong = wrongPicks.has(opt.key)
+          const isSelected = selected === opt.key
+          const isPlaying = speaking && playing === opt.key
           const color = picked && isSelected ? 'bg-emerald-400 text-emerald-950' : BUTTON_COLORS[i % BUTTON_COLORS.length]
           return (
             <KidButton
-              key={opt.letter}
+              key={opt.key}
               onPress={() => handleListen(opt)}
               disabled={picked || isWrong}
               aria-label={`Чуй вариант ${i + 1}`}
               aria-pressed={isSelected}
               className={`flex h-24 items-center justify-center rounded-3xl shadow-md transition active:scale-95 ${color} ${
                 isWrong || (picked && !isSelected) ? 'opacity-30' : ''
-              } ${isSelected ? 'scale-105 ring-4 ring-violet-600' : ''} ${shakeKey === opt.letter ? 'animate-shake' : ''}`}
+              } ${isSelected ? 'scale-105 ring-4 ring-violet-600' : ''} ${shakeKey === opt.key ? 'animate-shake' : ''}`}
             >
               <SpeakerIcon playing={isPlaying} className="h-14 w-14" />
             </KidButton>

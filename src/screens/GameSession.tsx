@@ -3,16 +3,22 @@ import { buildSession } from '../data/session'
 import TraceExercise from './TraceExercise'
 import ChoiceExercise from './ChoiceExercise'
 import WordExercise from './WordExercise'
-import NameExercise from './NameExercise'
-import type { Difficulty } from '../types'
+import SoundPickExercise from './SoundPickExercise'
+import ReadPickExercise from './ReadPickExercise'
+import CursiveGlyph from '../components/CursiveGlyph'
+import Written from '../components/Written'
+import { glyphFor } from '../data/letters'
+import { buildNamePhrase, buildReadPhrase } from '../data/spokenPhrase'
+import type { Category, Difficulty } from '../types'
 
 interface Props {
+  category: Category
   difficulty: Difficulty
   onFinish: (correct: number, total: number) => void
 }
 
-export default function GameSession({ difficulty, onFinish }: Props) {
-  const exercises = useMemo(() => buildSession(difficulty), [difficulty])
+export default function GameSession({ category, difficulty, onFinish }: Props) {
+  const exercises = useMemo(() => buildSession(category, difficulty), [category, difficulty])
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
 
@@ -70,11 +76,37 @@ export default function GameSession({ difficulty, onFinish }: Props) {
           />
         )}
         {exercise.type === 'name' && (
-          <NameExercise
-            letter={exercise.letter}
+          <SoundPickExercise
+            title="Как се казва тази буква? 🤔"
+            options={exercise.options.map((opt) => ({ key: opt.letter, phrase: buildNamePhrase(opt) }))}
+            answer={exercise.letter.letter}
+            onComplete={handleRoundComplete}
+          >
+            {exercise.cursive ? (
+              <CursiveGlyph glyph={glyphFor(exercise.letter, exercise.lowercase)} className="h-3/4" />
+            ) : (
+              glyphFor(exercise.letter, exercise.lowercase)
+            )}
+          </SoundPickExercise>
+        )}
+        {exercise.type === 'sound' && (
+          <SoundPickExercise
+            title={exercise.target.kind === 'syllable' ? 'Как се чете тази сричка? 🤔' : 'Как се чете тази дума? 🤔'}
+            options={exercise.options.map((opt) => ({ key: opt.text, phrase: buildReadPhrase(opt) }))}
+            answer={exercise.target.text}
+            onComplete={handleRoundComplete}
+          >
+            <span className={exercise.target.kind === 'word' ? 'text-6xl' : ''}>
+              <Written text={exercise.target.text} cursive={exercise.cursive} cursiveClassName="h-20 max-w-full" />
+            </span>
+          </SoundPickExercise>
+        )}
+        {(exercise.type === 'listen' || exercise.type === 'picture') && (
+          <ReadPickExercise
+            mode={exercise.type}
+            target={exercise.target}
             options={exercise.options}
             cursive={exercise.cursive}
-            lowercase={exercise.lowercase}
             onComplete={handleRoundComplete}
           />
         )}

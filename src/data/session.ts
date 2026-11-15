@@ -1,5 +1,15 @@
 import { ALPHABET, type BgLetter } from './letters'
-import type { ChoiceExercise, Difficulty, Exercise, NameExercise, TraceExercise, WordExercise } from '../types'
+import { EASY_SYLLABLES, EASY_WORDS, HARD_SYLLABLES, HARD_WORDS } from './reading'
+import type {
+  Category,
+  ChoiceExercise,
+  Difficulty,
+  Exercise,
+  NameExercise,
+  ReadItem,
+  TraceExercise,
+  WordExercise,
+} from '../types'
 
 /** Rounds per game. Fixed now that the home screen picks difficulty, not length. */
 export const ROUND_COUNT = 10
@@ -30,7 +40,43 @@ function pickOptions(correct: BgLetter, pool: BgLetter[], count: number): BgLett
   return shuffle([correct, ...distractors])
 }
 
-export function buildSession(difficulty: Difficulty): Exercise[] {
+/**
+ * Options for a reading round. Easy picks distractors that look nothing like
+ * the answer; hard picks the ones closest to it, so the child has to read the
+ * whole thing rather than spot one letter.
+ */
+function pickReadOptions(target: ReadItem, pool: ReadItem[], count: number, difficulty: Difficulty): ReadItem[] {
+  const similar = (item: ReadItem) =>
+    target.kind === 'syllable'
+      ? item.text[0] === target.text[0] || item.text[1] === target.text[1]
+      : item.text[0] === target.text[0]
+  const others = shuffle(pool.filter((item) => item.text !== target.text))
+  const wanted = difficulty === 'hard'
+  const ranked = [...others.filter((item) => similar(item) === wanted), ...others.filter((item) => similar(item) !== wanted)]
+  return shuffle([target, ...ranked.slice(0, count - 1)])
+}
+
+function buildReadingSession(category: 'syllables' | 'words', difficulty: Difficulty): Exercise[] {
+  const hard = difficulty === 'hard'
+  const pool = category === 'syllables' ? (hard ? HARD_SYLLABLES : EASY_SYLLABLES) : hard ? HARD_WORDS : EASY_WORDS
+  // Syllables have no picture to match against.
+  const types = category === 'syllables' ? (['listen', 'sound'] as const) : (['listen', 'sound', 'picture'] as const)
+
+  return shuffle(pool)
+    .slice(0, ROUND_COUNT)
+    .map((target): Exercise => {
+      const type = types[Math.floor(Math.random() * types.length)]
+      // Sound buttons each have to be listened to and remembered, and written
+      // words are stacked one per row, so both stop at three; the rest fit four.
+      const hardCount = type === 'sound' || (type === 'listen' && category === 'words') ? 3 : 4
+      const options = pickReadOptions(target, pool, hard ? hardCount : 2, difficulty)
+      return { type, target, options, cursive: hard }
+    })
+}
+
+export function buildSession(category: Category, difficulty: Difficulty): Exercise[] {
+  if (category !== 'letters') return buildReadingSession(category, difficulty)
+
   const letters = shuffle(ALPHABET).slice(0, ROUND_COUNT)
   const choicePool = ALPHABET.filter((l) => !CHOICE_EXCLUDED.has(l.letter))
   const wordPool = ALPHABET.filter((l) => !WORD_EXCLUDED.has(l.letter))
