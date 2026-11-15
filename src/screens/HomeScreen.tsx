@@ -3,7 +3,13 @@ import KidButton from '../components/KidButton'
 import Logo from '../components/Logo'
 import { useFullscreen } from '../hooks/useFullscreen'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
-import type { Difficulty } from '../types'
+import type { Category, Difficulty } from '../types'
+
+const CATEGORY_OPTIONS: { value: Category; label: string; sample: string }[] = [
+  { value: 'letters', label: 'Букви', sample: 'А' },
+  { value: 'syllables', label: 'Срички', sample: 'МА' },
+  { value: 'words', label: 'Думи', sample: '🐱' },
+]
 
 const DIFFICULTY_OPTIONS: { value: Difficulty; label: string; hint: string }[] = [
   { value: 'easy', label: 'Лесно', hint: 'печатни букви' },
@@ -13,12 +19,13 @@ const DIFFICULTY_OPTIONS: { value: Difficulty; label: string; hint: string }[] =
 const FLOATING_LETTERS = ['А', 'б', 'В', 'ю', 'Я', 'ж']
 
 interface Props {
-  onStart: (difficulty: Difficulty) => void
+  onStart: (category: Category, difficulty: Difficulty) => void
   speechSupported: boolean
   hasBulgarianVoice: boolean
 }
 
 export default function HomeScreen({ onStart, speechSupported, hasBulgarianVoice }: Props) {
+  const [category, setCategory] = useState<Category>('letters')
   const [difficulty, setDifficulty] = useState<Difficulty>('easy')
   const { supported: fsSupported, isFullscreen, enter: enterFullscreen } = useFullscreen()
   const { canInstall, promptInstall } = useInstallPrompt()
@@ -52,7 +59,7 @@ export default function HomeScreen({ onStart, speechSupported, hasBulgarianVoice
 
       <p className="z-10 text-xl font-semibold text-white/90">Учим българската азбука, играейки!</p>
 
-      <div className="z-10 flex w-full max-w-sm flex-col items-center gap-6">
+      <div className="z-10 flex w-full max-w-sm flex-col items-center gap-5">
         {!speechSupported && (
           <p className="rounded-2xl bg-white/90 px-4 py-2 text-sm font-semibold text-rose-600">
             Твоят браузър няма звук за буквите 🔇 — играта пак работи, но без говор.
@@ -63,6 +70,24 @@ export default function HomeScreen({ onStart, speechSupported, hasBulgarianVoice
             Няма открит български глас 🔈 — звукът може да звучи различно.
           </p>
         )}
+
+        <div className="flex w-full justify-center gap-3">
+          {CATEGORY_OPTIONS.map((opt) => (
+            <KidButton
+              key={opt.value}
+              onPress={() => setCategory(opt.value)}
+              aria-pressed={category === opt.value}
+              className={`flex-1 rounded-2xl px-2 py-2 text-lg font-bold shadow-md transition active:scale-95 ${
+                category === opt.value
+                  ? 'bg-white text-violet-600 ring-4 ring-white/60'
+                  : 'bg-white/30 text-white hover:bg-white/40'
+              }`}
+            >
+              <div className="text-3xl font-extrabold leading-tight">{opt.sample}</div>
+              {opt.label}
+            </KidButton>
+          ))}
+        </div>
 
         <div className="flex w-full justify-center gap-3">
           {DIFFICULTY_OPTIONS.map((opt) => (
@@ -82,7 +107,7 @@ export default function HomeScreen({ onStart, speechSupported, hasBulgarianVoice
         </div>
 
         <KidButton
-          onPress={() => onStart(difficulty)}
+          onPress={() => onStart(category, difficulty)}
           className="w-full rounded-full bg-yellow-300 px-10 py-5 text-3xl font-extrabold text-violet-700 shadow-[0_8px_0_0_rgba(180,120,0,0.5)] transition active:translate-y-1 active:shadow-[0_3px_0_0_rgba(180,120,0,0.5)]"
         >
           ▶ ИГРАЙ

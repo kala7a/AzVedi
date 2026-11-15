@@ -2,6 +2,7 @@ import { CURSIVE_STROKES } from '../data/cursiveStrokes'
 import { svgPath } from '../data/strokePath'
 
 interface Props {
+  /** One letter, or a syllable or word to write out letter by letter. */
   glyph: string
   className?: string
 }
@@ -19,35 +20,45 @@ const PEN = 7
  * The box keeps its full height so a tall letter still looks tall next to a
  * short one, but is trimmed to the letter's own width so narrow letters are
  * not left swimming in space.
+ *
+ * Longer text is the same letters set side by side. They are not joined up
+ * the way a hand would join them: each was traced on its own, and has no
+ * entry or exit stroke to meet its neighbour with.
  */
 export default function CursiveGlyph({ glyph, className }: Props) {
-  const strokes = CURSIVE_STROKES[glyph]
+  const letters = [...glyph].map((ch) => CURSIVE_STROKES[ch])
   // Bulgarian writes no capital ь; anything else missing would be a bug, but
-  // a letter the child can still read beats an empty box either way.
-  if (!strokes?.length) return <span className={className}>{glyph}</span>
+  // text the child can still read beats an empty box either way.
+  if (letters.length === 0 || letters.some((strokes) => !strokes?.length)) {
+    return <span className={className}>{glyph}</span>
+  }
 
-  const xs = strokes.flat().map((p) => p.x)
   const pad = PEN / 2 + 1
-  const left = Math.min(...xs) - pad
-  const width = Math.max(...xs) + pad - left
+  let width = 0
+  const placed = letters.map((strokes) => {
+    const xs = strokes.flat().map((p) => p.x)
+    const left = Math.min(...xs) - pad
+    const dx = width - left
+    width += Math.max(...xs) + pad - left
+    return { strokes, dx }
+  })
 
   return (
-    <svg
-      viewBox={`${left} 0 ${width} 100`}
-      className={className}
-      role="img"
-      aria-label={glyph}
-    >
-      {strokes.map((stroke, i) => (
-        <path
-          key={i}
-          d={svgPath(stroke, true)}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={PEN}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+    <svg viewBox={`0 0 ${width} 100`} className={className} role="img" aria-label={glyph}>
+      {placed.map(({ strokes, dx }, li) => (
+        <g key={li} transform={`translate(${dx} 0)`}>
+          {strokes.map((stroke, i) => (
+            <path
+              key={i}
+              d={svgPath(stroke, true)}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={PEN}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          ))}
+        </g>
       ))}
     </svg>
   )

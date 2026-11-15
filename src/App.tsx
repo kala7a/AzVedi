@@ -4,18 +4,18 @@ import GameSession from './screens/GameSession'
 import ResultsScreen from './screens/ResultsScreen'
 import VersionBadge from './components/VersionBadge'
 import { useSpeech } from './hooks/useSpeech'
-import type { Difficulty } from './types'
+import type { Category, Difficulty } from './types'
 
 type Screen =
   | { name: 'home' }
-  | { name: 'session'; difficulty: Difficulty }
-  | { name: 'results'; correct: number; total: number; difficulty: Difficulty }
+  | { name: 'session'; category: Category; difficulty: Difficulty }
+  | { name: 'results'; correct: number; total: number; category: Category; difficulty: Difficulty }
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' })
   const { supported, hasBulgarianVoice, warmUp } = useSpeech()
 
-  function startSession(difficulty: Difficulty) {
+  function startSession(category: Category, difficulty: Difficulty) {
     // Fired on the same tap that starts the session — the user gesture
     // both of these need, and enough head start before the first letter
     // sound is due a few hundred ms later once the round screen has
@@ -25,16 +25,17 @@ export default function App() {
     // buttons shouldn't be able to exit the game by accident.
     document.documentElement.requestFullscreen?.().catch(() => {})
     warmUp()
-    setScreen({ name: 'session', difficulty })
+    setScreen({ name: 'session', category, difficulty })
   }
 
   let content
   if (screen.name === 'session') {
-    const { difficulty } = screen
+    const { category, difficulty } = screen
     content = (
       <GameSession
+        category={category}
         difficulty={difficulty}
-        onFinish={(correct, total) => setScreen({ name: 'results', correct, total, difficulty })}
+        onFinish={(correct, total) => setScreen({ name: 'results', correct, total, category, difficulty })}
       />
     )
   } else if (screen.name === 'results') {
@@ -42,7 +43,7 @@ export default function App() {
       <ResultsScreen
         correct={screen.correct}
         total={screen.total}
-        onPlayAgain={() => startSession(screen.difficulty)}
+        onPlayAgain={() => startSession(screen.category, screen.difficulty)}
         onHome={() => setScreen({ name: 'home' })}
       />
     )

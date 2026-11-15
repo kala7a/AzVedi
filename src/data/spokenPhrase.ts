@@ -1,4 +1,5 @@
 import type { BgLetter, WordOption } from './letters'
+import type { ReadItem } from '../types'
 
 /**
  * Two natural ways to say a letter's sound out loud, picked at random per
@@ -30,4 +31,9 @@ export function buildWordPhrase(word: WordOption): string {
  */
 export function buildNamePhrase(letter: BgLetter): string {
   return `Буквата ${letter.speechText}`
+}
+
+/** A syllable or word read aloud, behind the same clip-absorbing lead-in. */
+export function buildReadPhrase(item: ReadItem): string {
+  return `${item.kind === 'syllable' ? 'Сричката' : 'Думата'} ${item.text}`
 }
