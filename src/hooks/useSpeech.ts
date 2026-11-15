@@ -14,11 +14,17 @@ function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null 
  */
 export function useSpeech() {
   const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null)
+  // Whether the browser has told us about any voices at all yet.
+  const [voicesListed, setVoicesListed] = useState(false)
   const [speaking, setSpeaking] = useState(false)
 
   useEffect(() => {
     if (!supported) return
-    const load = () => setVoice(pickVoice(window.speechSynthesis.getVoices()))
+    const load = () => {
+      const voices = window.speechSynthesis.getVoices()
+      setVoice(pickVoice(voices))
+      setVoicesListed(voices.length > 0)
+    }
     load()
     window.speechSynthesis.addEventListener('voiceschanged', load)
     return () => window.speechSynthesis.removeEventListener('voiceschanged', load)
@@ -61,5 +67,8 @@ export function useSpeech() {
     synth.speak(utterance)
   }, [voice])
 
-  return { speak, warmUp, speaking, supported, hasBulgarianVoice: voice !== null }
+  // The list arrives late on Chrome and on some Android builds never arrives,
+  // though speech in bg-BG works all the same. Only a list that came back
+  // without a Bulgarian voice in it is a reason to warn.
+  return { speak, warmUp, speaking, supported, hasBulgarianVoice: voice !== null || !voicesListed }
 }
