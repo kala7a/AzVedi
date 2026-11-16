@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { buildSession } from '../data/session'
 import TraceExercise from './TraceExercise'
 import ChoiceExercise from './ChoiceExercise'
@@ -6,6 +6,7 @@ import WordExercise from './WordExercise'
 import SoundPickExercise from './SoundPickExercise'
 import ReadPickExercise from './ReadPickExercise'
 import CursiveGlyph from '../components/CursiveGlyph'
+import HoldToExitButton from '../components/HoldToExitButton'
 import Written from '../components/Written'
 import { glyphFor } from '../data/letters'
 import { buildNamePhrase, buildReadPhrase } from '../data/spokenPhrase'
@@ -15,16 +16,32 @@ interface Props {
   category: Category
   difficulty: Difficulty
   onFinish: (correct: number, total: number) => void
+  /** Leaves mid-session, with nothing scored. */
+  onExit: () => void
 }
 
-export default function GameSession({ category, difficulty, onFinish }: Props) {
+export default function GameSession({ category, difficulty, onFinish, onExit }: Props) {
   const exercises = useMemo(() => buildSession(category, difficulty), [category, difficulty])
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
 
   const exercise = exercises[index]
 
+  // A round reports back on a timer, after its celebration. Leaving in that
+  // window would otherwise let the last round's timer land on the results
+  // screen a moment after the home screen came up.
+  const leftRef = useRef(false)
+  useEffect(() => {
+    leftRef.current = false
+    return () => {
+      leftRef.current = true
+      // Don't let the round's phrase carry on over the home screen.
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+    }
+  }, [])
+
   function handleRoundComplete(correct: boolean) {
+    if (leftRef.current) return
     const nextCorrect = correctCount + (correct ? 1 : 0)
     setCorrectCount(nextCorrect)
     if (index + 1 >= exercises.length) {
@@ -37,6 +54,7 @@ export default function GameSession({ category, difficulty, onFinish }: Props) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-gradient-to-b from-sky-200 via-violet-100 to-pink-100">
       <div className="flex shrink-0 items-center gap-3 px-6 pt-4">
+        <HoldToExitButton onExit={onExit} />
         <div className="h-4 flex-1 overflow-hidden rounded-full bg-white/70">
           <div
             className="h-full rounded-full bg-violet-500 transition-all duration-500"

@@ -42,6 +42,7 @@ export default function App() {
         category={category}
         difficulty={difficulty}
         onFinish={(correct, total) => setScreen({ name: 'results', correct, total, category, difficulty })}
+        onExit={() => setScreen({ name: 'home' })}
       />
     )
   } else if (screen.name === 'results') {
