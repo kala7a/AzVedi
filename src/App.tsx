@@ -13,6 +13,11 @@ type Screen =
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' })
+  // What was last played, so going back home doesn't reset the pickers.
+  const [lastPlayed, setLastPlayed] = useState<{ category: Category; difficulty: Difficulty }>({
+    category: 'letters',
+    difficulty: 'easy',
+  })
   const { supported, hasBulgarianVoice, warmUp } = useSpeech()
 
   function startSession(category: Category, difficulty: Difficulty) {
@@ -25,6 +30,7 @@ export default function App() {
     // buttons shouldn't be able to exit the game by accident.
     document.documentElement.requestFullscreen?.().catch(() => {})
     warmUp()
+    setLastPlayed({ category, difficulty })
     setScreen({ name: 'session', category, difficulty })
   }
 
@@ -36,6 +42,7 @@ export default function App() {
         category={category}
         difficulty={difficulty}
         onFinish={(correct, total) => setScreen({ name: 'results', correct, total, category, difficulty })}
+        onExit={() => setScreen({ name: 'home' })}
       />
     )
   } else if (screen.name === 'results') {
@@ -51,6 +58,8 @@ export default function App() {
     content = (
       <HomeScreen
         onStart={startSession}
+        initialCategory={lastPlayed.category}
+        initialDifficulty={lastPlayed.difficulty}
         speechSupported={supported}
         hasBulgarianVoice={hasBulgarianVoice}
       />

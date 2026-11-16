@@ -12,7 +12,9 @@ no AI — just a static React app.
 The home screen picks what to practise — **Букви** (letters), **Срички**
 (syllables) or **Думи** (whole words) — and a difficulty: **Лесно** uses
 printed capitals, **Трудно** uses handwritten (ръкописни) letters. A play
-session is 10 rounds, ending in a star rating (1–3 stars).
+session is 10 rounds, ending in a star rating (1–3 stars). The ✕ beside the
+progress bar leaves a session early; it has to be held for a moment, so a
+child doesn't leave by accident.
 
 **Букви** mixes four exercise types:
 

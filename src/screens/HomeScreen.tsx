@@ -20,13 +20,21 @@ const FLOATING_LETTERS = ['А', 'б', 'В', 'ю', 'Я', 'ж']
 
 interface Props {
   onStart: (category: Category, difficulty: Difficulty) => void
+  initialCategory: Category
+  initialDifficulty: Difficulty
   speechSupported: boolean
   hasBulgarianVoice: boolean
 }
 
-export default function HomeScreen({ onStart, speechSupported, hasBulgarianVoice }: Props) {
-  const [category, setCategory] = useState<Category>('letters')
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy')
+export default function HomeScreen({
+  onStart,
+  initialCategory,
+  initialDifficulty,
+  speechSupported,
+  hasBulgarianVoice,
+}: Props) {
+  const [category, setCategory] = useState<Category>(initialCategory)
+  const [difficulty, setDifficulty] = useState<Difficulty>(initialDifficulty)
   const { supported: fsSupported, isFullscreen, enter: enterFullscreen } = useFullscreen()
   const { canInstall, promptInstall } = useInstallPrompt()
   const [fsMessage, setFsMessage] = useState<string | null>(null)
