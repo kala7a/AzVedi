@@ -31,7 +31,7 @@ export function useSpeech() {
   }, [])
 
   const speak = useCallback(
-    (text: string) => {
+    (text: string, onStart?: () => void) => {
       if (!supported) return
       const synth = window.speechSynthesis
       // Only cancel if something is actually queued/playing — an
@@ -44,7 +44,10 @@ export function useSpeech() {
       utterance.rate = 0.8
       utterance.pitch = 1.1
       if (voice) utterance.voice = voice
-      utterance.onstart = () => setSpeaking(true)
+      utterance.onstart = () => {
+        setSpeaking(true)
+        onStart?.()
+      }
       utterance.onend = () => setSpeaking(false)
       utterance.onerror = () => setSpeaking(false)
       synth.speak(utterance)

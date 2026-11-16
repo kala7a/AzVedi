@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import KidButton from '../components/KidButton'
 import Logo from '../components/Logo'
+import SoundHelp from '../components/SoundHelp'
 import { useFullscreen } from '../hooks/useFullscreen'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import type { Category, Difficulty } from '../types'
@@ -38,6 +39,7 @@ export default function HomeScreen({
   const { supported: fsSupported, isFullscreen, enter: enterFullscreen } = useFullscreen()
   const { canInstall, promptInstall } = useInstallPrompt()
   const [fsMessage, setFsMessage] = useState<string | null>(null)
+  const [soundHelpOpen, setSoundHelpOpen] = useState(false)
 
   async function handleFullscreen() {
     const ok = await enterFullscreen()
@@ -121,8 +123,7 @@ export default function HomeScreen({
           ▶ ИГРАЙ
         </KidButton>
 
-        {(canInstall || (fsSupported && !isFullscreen)) && (
-          <div className="flex w-full justify-center gap-2">
+        <div className="flex w-full justify-center gap-2">
             {/* Plain native buttons on purpose, not KidButton: both
                 requestFullscreen() and BeforeInstallPromptEvent.prompt()
                 are picky about the browser's user-activation state and can
@@ -151,8 +152,14 @@ export default function HomeScreen({
                 ⛶ Цял екран
               </button>
             )}
-          </div>
-        )}
+            <button
+              onClick={() => setSoundHelpOpen(true)}
+              className="flex-1 rounded-full bg-white/25 px-3 py-2 text-sm font-bold text-white active:scale-95"
+            >
+              🔈 Няма говор?
+            </button>
+        </div>
+        {soundHelpOpen && <SoundHelp onClose={() => setSoundHelpOpen(false)} />}
         {fsMessage && <p className="rounded-2xl bg-white/90 px-4 py-2 text-sm font-semibold text-violet-700">{fsMessage}</p>}
       </div>
     </div>
