@@ -1,4 +1,7 @@
+import { useEffect } from 'react'
 import KidButton from '../components/KidButton'
+import { buildResultPhrase, gradeFor } from '../data/resultPhrase'
+import { useSpeech } from '../hooks/useSpeech'
 
 interface Props {
   correct: number
@@ -7,21 +10,22 @@ interface Props {
   onHome: () => void
 }
 
-function starsFor(ratio: number): number {
-  if (ratio >= 0.85) return 3
-  if (ratio >= 0.6) return 2
-  return 1
-}
-
-function messageFor(stars: number): string {
-  if (stars === 3) return 'Ти си истинска звезда! 🌟'
-  if (stars === 2) return 'Много добре се справи! 👏'
-  return 'Браво, че игра! Ще станеш още по-добър! 💪'
-}
-
 export default function ResultsScreen({ correct, total, onPlayAgain, onHome }: Props) {
-  const ratio = total > 0 ? correct / total : 0
-  const stars = starsFor(ratio)
+  const grade = gradeFor(correct, total)
+  const { stars } = grade
+  const { speak } = useSpeech()
+  const phrase = buildResultPhrase(correct, total)
+
+  useEffect(() => {
+    // After the stars have popped in, so the child is looking at them.
+    const t = setTimeout(() => speak(phrase), 700)
+    return () => {
+      clearTimeout(t)
+      // Don't let it carry on over the home screen or the next game.
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phrase])
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-gradient-to-b from-emerald-400 via-teal-400 to-sky-400 px-6 py-10 text-center">
@@ -35,10 +39,10 @@ export default function ResultsScreen({ correct, total, onPlayAgain, onHome }: P
         ))}
       </div>
 
-      <h2 className="text-3xl font-extrabold text-white drop-shadow">{messageFor(stars)}</h2>
+      <h2 className="text-3xl font-extrabold text-white drop-shadow">{grade.title} {grade.emoji}</h2>
 
       <p className="rounded-3xl bg-white/90 px-8 py-4 text-2xl font-bold text-teal-700 shadow-md">
-        {correct} от {total} точно
+        {correct} от {total} точки
       </p>
 
       <div className="flex w-full max-w-xs flex-col gap-3">
