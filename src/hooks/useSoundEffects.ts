@@ -62,5 +62,19 @@ export function useSoundEffects() {
     tone(440, 0, 0.08, ctx)
   }, [tone])
 
-  return { playCorrect, playWrong, playTap }
+  /** One note of a rising scale, for counting stars in one at a time. */
+  const playStar = useCallback(
+    (step: number) => {
+      const ctx = getCtx()
+      if (!ctx) return
+      // Major pentatonic from C5: no two neighbouring notes clash, however
+      // many stars there are.
+      const PENTATONIC = [0, 2, 4, 7, 9]
+      const semitones = 12 * Math.floor(step / 5) + PENTATONIC[step % 5]
+      tone(523.25 * 2 ** (semitones / 12), 0, 0.18, ctx)
+    },
+    [tone],
+  )
+
+  return { playCorrect, playWrong, playTap, playStar }
 }

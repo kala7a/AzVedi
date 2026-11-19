@@ -2,7 +2,6 @@ export interface Grade {
   /** Shown as the heading and said first: "Перфектно!", "Отлично!" … */
   title: string
   emoji: string
-  stars: number
   /** Said after the score, on the lower grades only. */
   encouragement?: string
 }
@@ -13,11 +12,11 @@ export interface Grade {
  */
 export function gradeFor(correct: number, total: number): Grade {
   const ratio = total > 0 ? correct / total : 0
-  if (ratio >= 1) return { title: 'Перфектно!', emoji: '🌟', stars: 3 }
-  if (ratio >= 0.8) return { title: 'Отлично!', emoji: '🎉', stars: 3 }
-  if (ratio >= 0.6) return { title: 'Много добре!', emoji: '👏', stars: 2 }
-  if (ratio >= 0.4) return { title: 'Добре!', emoji: '👍', stars: 2, encouragement: 'Продължавай така!' }
-  return { title: 'Браво, че игра!', emoji: '💪', stars: 1, encouragement: 'Следващия път ще стане още по-добре!' }
+  if (ratio >= 1) return { title: 'Перфектно!', emoji: '🌟' }
+  if (ratio >= 0.8) return { title: 'Отлично!', emoji: '🎉' }
+  if (ratio >= 0.6) return { title: 'Много добре!', emoji: '👏' }
+  if (ratio >= 0.4) return { title: 'Добре!', emoji: '👍', encouragement: 'Продължавай така!' }
+  return { title: 'Браво, че игра!', emoji: '💪', encouragement: 'Следващия път ще стане още по-добре!' }
 }
 
 // Spelled out, not left as digits: "точки" is feminine, and a speech engine

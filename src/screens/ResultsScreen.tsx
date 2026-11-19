@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import KidButton from '../components/KidButton'
+import StarRing, { STAR_START_MS, STAR_STEP_MS } from '../components/StarRing'
 import { buildResultPhrase, gradeFor } from '../data/resultPhrase'
 import { useSpeech } from '../hooks/useSpeech'
 
@@ -12,13 +13,13 @@ interface Props {
 
 export default function ResultsScreen({ correct, total, onPlayAgain, onHome }: Props) {
   const grade = gradeFor(correct, total)
-  const { stars } = grade
   const { speak } = useSpeech()
   const phrase = buildResultPhrase(correct, total)
 
   useEffect(() => {
-    // After the stars have popped in, so the child is looking at them.
-    const t = setTimeout(() => speak(phrase), 700)
+    // Once the last star has filled, so the count lands as it's said.
+    const fillMs = correct > 0 ? STAR_START_MS + (correct - 1) * STAR_STEP_MS : 0
+    const t = setTimeout(() => speak(phrase), fillMs + 600)
     return () => {
       clearTimeout(t)
       // Don't let it carry on over the home screen or the next game.
@@ -28,15 +29,12 @@ export default function ResultsScreen({ correct, total, onPlayAgain, onHome }: P
   }, [phrase])
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-gradient-to-b from-emerald-400 via-teal-400 to-sky-400 px-6 py-10 text-center">
-      <div className="animate-pop text-7xl">🏆</div>
-
-      <div className="flex gap-2 text-6xl">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className={i < stars ? 'animate-pop' : 'opacity-30'} style={{ animationDelay: `${i * 0.15}s` }}>
-            ⭐
-          </span>
-        ))}
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-gradient-to-b from-emerald-400 via-teal-400 to-sky-400 px-6 py-6 text-center">
+      {/* Sized by the screen's height as well as its width, so a short phone
+          still fits both buttons without scrolling. */}
+      <div className="relative aspect-square w-[min(18rem,40dvh)] max-w-full shrink-0">
+        <StarRing earned={correct} total={total} />
+        <div className="animate-pop absolute inset-0 flex items-center justify-center text-8xl">🏆</div>
       </div>
 
       <h2 className="text-3xl font-extrabold text-white drop-shadow">{grade.title} {grade.emoji}</h2>
